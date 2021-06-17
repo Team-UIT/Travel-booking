@@ -25,6 +25,9 @@ app.get('/', (req, res) => {
 app.get('/home', (req, res) => {
   res.render('homescreen')
 })
+app.get('/book',(req,res)=>{
+  res.render('booking')
+})
 app.listen(port, () => {
   console.log(`Serve at http://localhost:${port}`);
 });
