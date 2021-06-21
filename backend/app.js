@@ -1,33 +1,31 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import path from 'path';
-// import expressLayouts from 'express-ejs-layouts';
+import bodyParser from 'body-parser';
+  // import Homeroutes from './routes/HomeRoutes.js'
+
 
 const app = express();
 app.set('view engine', 'ejs');
-// app.use(expressLayouts);
 const port = process.env.PORT || 5000;
-
-mongoose.connect(process.env.MONGODB_URL || 'mongodb://localhost/booking', {
+mongoose.connect('mongodb://localhost/booking', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true,
 });
+// var db = mongoose.connection;
+// db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+
 const __dirname = path.resolve();
 app.use(express.static(path.join(__dirname + '/public')));
-// app.use(express.static(__dirname + '/public'));
 app.use(express.json({ limit: '30mb' }));
 app.use(express.urlencoded({ extended: true, limit: '30mb' }));
+app.use(bodyParser.json());
 
-app.get('/', (req, res) => {
-  res.send('ok');
-})
-app.get('/home', (req, res) => {
-  res.render('homescreen')
-})
-app.get('/book',(req,res)=>{
-  res.render('booking')
-})
+const Homeroutes = require('./routes/HomeRoutes.js');
+app.use('/',Homeroutes);
+
+
 app.listen(port, () => {
   console.log(`Serve at http://localhost:${port}`);
 });
