@@ -1,98 +1,67 @@
-// const User = require('../model/user');
-// // const mongooseHelper = require('../helper/mongoose');
-// const jwt = require('jsonwebtoken');
-// // const config = require('../config');
-// exports.auth = function(req, res){
-//     const { email, password } = req.body;
+const User = require('../model/UserModel');
+const jwt = require('jsonwebtoken');
 
-//     if(!password || !email){
-//         return res.status(422).send({errors: [{title: 'Data missing!', detail: 'Provide email and password!'}]});
-//     }
-
-//     User.findOne({email}, function(err, user){
-//         if(err){
-//             return res.status(422).send({errors: mongooseHelper.normalizeErrors(err.errors)});
-//         }
-
-//         if(!user){
-//             return res.status(422).send({errors: [{title: 'Invalid user!', detail: 'User doesnt exists'}]});
-//         }
-
-//         if(user.hasSamePassword(password)){
-//             const token = jwt.sign({
-//                 userId: user.id,
-//                 username: user.username
-//             }, config.SECRET, {expiresIn: '1hr'});
-//             return res.json(token);
-//         } else {
-//             return res.status(422).send({errors: [{title: 'Wrong data!', detail: 'Wrong email or password'}]});
-//         }
-//     });
-// }
-
-// exports.register = function(req, res){
-//     const { username, email, password, passwordConfirmation } = req.body;
-
-//     if(!password || !email){
-//         return res.status(422).send({errors: [{title: 'Data missing!', detail: 'Provide email and password!'}]});
-//     }
-
-//     if(password !== passwordConfirmation){
-//         return res.status(422).send({errors: [{title: 'Invalid Password', detail: 'Password is not same as confimation password!'}]});
-//     }
-
-//     User.findOne({email}, (err, existingUser)=>{
-//         if(err){
-//             return res.status(422).send({errors: mongooseHelper.normalizeErrors(err.errors)});
-//         }
-
-//         if(existingUser){
-//             return res.status(422).send({errors: [{title: 'Invalid email', detail: 'User with this email already exists!'}]});
-//         }
-
-//         const user = new User({
-//             username,
-//             email,
-//             password
-//         });
-
-//         user.save((err)=>{
-//             if(err){
-//                 return res.status(422).send({errors: mongooseHelper.normalizeErrors(err.errors)});
-//             }
-
-//             return res.json({'Registered':true});
-//         });
-//     })
-    
-// }
-
-
-// exports.authMiddleware = function(req, res, next){
-//     const token = req.headers.authorization;
-
-//     if(token){
-//         const user = parseToken(token);
-//         User.findById(user.userId, function(err, user){
-//             if(err){
-//                 return res.status(422).send({errors: mongooseHelper.normalizeErrors(err.errors)});
-//             }
-//             if(user){
-//                 res.locals.user = user;
-//                 next();
-//             } else {
-//                 return notAuthorized(res);
-//             }
-//         })
-//     } else {
-//         return notAuthorized(res);
-//     }
-// }
-
-// function parseToken(token){
-//     return jwt.verify(token.split(' ')[1], config.SECRET);
-// }
-
-// function notAuthorized(res){
-//     return res.status(401).send({errors: [{title: 'Not authorized', detail: 'You need to login to get access!'}]});
-// }
+exports.login = async function(req,res){
+    try {
+        const { email, password } = req.body;
+        const user = await User.findByCredentials(email, password)
+        if (!user) {
+            return res.status(401).send({error: 'Login failed! Check authentication credentials'})
+        }
+        const token = await user.generateAuthToken()
+        return res.status(500).send({ message: 'User Login sucess full' }, user,token);
+    } catch (error) {
+        res.status(400).send(error)
+    }
+}
+exports.register = async function(req, res) {
+    try {
+        const user = new User(req.body)
+        await user.save()
+        const token = await user.generateAuthToken()
+        return res.status(500).send({ message: 'User Register sucessfull' }, user,token);
+    } catch (error) {
+        res.status(400).send(error)
+    }
+}
+exports.profile = async function(req,res){
+    try {
+        const user = await User.findById(req.params.id);
+        res.send(user);
+    } catch (error) {
+        res.status(404).send({ message: 'User Not Found.' });
+    }
+}
+module.exports.list = async function (req, res) {
+    try {
+        const user = await User.find();
+        res.send(user);
+    } catch (error) {
+        res.status(404).send({ message: 'User Not Found.' });
+    }
+};
+exports.update = async function (req,res){
+    const user = await User.findById(req.params.id);
+    if (user) {
+            hotel.name = req.body.name;
+            hotel.email = req.body.email;
+            hotel.password = bcrypt.hashSync(req.body.password);
+        const updateduser = await User.save();
+        if (updateduser) {
+            return res
+                .status(200)
+                .send({ message: 'Hotel Updated', data: updateduser });
+        }
+    }
+    await user.save();
+}
+exports.delete = async function(req,res) {
+    try{
+        const user = await User.findById(req.params.id);
+        await user.remove();
+    }
+    catch(error){
+        console.log(req.params.id);
+        res.status(404).send({ message: 'Failure' });
+    }
+}

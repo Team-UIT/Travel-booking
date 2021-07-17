@@ -2,10 +2,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const bodyParser = require('body-parser');
-const Homeroutes = require('./routes/HomeRoutes.js');
+// const Homeroutes = require('./routes/HomeRoutes.js');
 const dotenv = require("dotenv");
 const connectDb = require('./controller/db');
-const hotelRouter = require('./routes/HotelRoutes')
+const hotelRouter = require('./routes/HotelRoutes');
+const userRouter = require('./routes/UsersRoutes');
+
 dotenv.config();
 
 connectDb();
@@ -24,6 +26,7 @@ app.use('/hotel',hotelRouter);
 // app.use('/home',(req,res)=>{
 //   res.render('hotel')
 // })
+app.use('/users',userRouter);
 
 app.listen(port, () => {
   console.log(`Serve at http://localhost:${port}`);
